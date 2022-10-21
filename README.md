@@ -2,7 +2,7 @@
 
 Позволяет запускать выполнение reload-tasks даже пользователям без лицензии.
 
-Работает черех header-авторизацию.
+Работает через header-авторизацию.
 Для этого нужна специально настроенная virtual-proxy.
 
 Инструкция по настройке прокси: https://community.qlik.com/t5/Qlik-Sense-Documents/How-to-access-QRS-Repository-from-Load-Script/ta-p/1484264
