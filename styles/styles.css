@@ -1,0 +1,31 @@
+#qsform {
+    height:90%;
+    overflow:auto
+}
+#qsform .card {
+    margin-bottom: 10px;
+}
+
+#qsform .submitButton {
+    margin-top:40px
+}
+
+#qsform .nextButton {
+    margin-top: 10px;
+}
+
+#blocked {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1021;
+    background-color: black;
+    opacity: 0.6;
+}
+
+i.bi-x-square-fill {
+    font-size:1.2rem;
+    color: #FF605C;
+}
