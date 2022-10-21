@@ -120,6 +120,14 @@ function(qlik) {
 						}
 					}
 				},
+				addons: {
+					uses: "addons",
+					items: {
+						dataHandling : {
+							uses:"dataHandling"
+						}
+					}
+				},
 				appearance: {
 					uses: "settings"
 				}
@@ -135,7 +143,6 @@ function(qlik) {
 			const tId = currentElementId.replace('_content', '')
 			var _$element = $element
 			_$element.html("")
-			console.log(layout.style)
 			_$element.append('<div  class="qs_bootstrap"><button type="button" class="btn '+layout.style+'" style="margin-right:10px;min-width:100%">'+layout.buttonText+'</button></div>')
 			
 			$('div[tId="'+tId+'"] .qv-inner-object').css("background-color","rgba(0,0,0,0")
@@ -143,15 +150,12 @@ function(qlik) {
 			
 			$('#'+currentElementId+' .qs_bootstrap').css("position","absolute").css("width","100%")
 			var top = $('#'+currentElementId).height()/2 - 38/2;
-			console.log( $('#'+currentElementId).height())
-			console.log( $('#'+currentElementId+' .qs_bootstrap .btn').height())
+
 			$('#'+currentElementId+' .qs_bootstrap').css("top",top+"px")
 
 			var url = layout.host+'/'+layout.prefix+'/qrs/task/' + layout.taskId + '/start/synchronous?xrfkey=1234567890ABCDEF'
 			var headerUserParametres = layout.headerUserParametres
-			console.log(url)
 			$('#'+currentElementId+' .qs_bootstrap .btn').on('click',function(){
-				console.log('test')
 				var settings = {
 					"url": url,
 					"method": "POST",
@@ -162,7 +166,6 @@ function(qlik) {
 					},
 				  };
 				  settings['headers'][headerUserParametres] =layout.userId
-				  console.log(settings)
 				  
 				  $.ajax(settings).done(function (response) {
 					console.log(response);
