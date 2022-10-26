@@ -25,16 +25,16 @@
 
 1. Для запуска и просмотра статуса таска:
 
-Name: #Custom. Task admin
-Resource filter: App_*,ReloadTask*, ExecutionResult_*, ExecutionSession_*, externalProgramTask_*
-Actions: Read, Update
-Conditions: ((user.roles="TaskAdmin"))
-Context: Only in qmc
+Name: #Custom. Task admin. \
+Resource filter: App_*,ReloadTask*, ExecutionResult_*, ExecutionSession_*, externalProgramTask_* \
+Actions: Read, Update \
+Conditions: ((user.roles="TaskAdmin")) \
+Context: Only in qmc \
 
 2. Для просмотра связанных тасков
 
-Name: #Custom. Task chain viewer
-Resource filter: SchemaEvent*, CompositeEvent*
-Actions: Read
-Conditions: ((user.roles="TaskAdmin"))
-Context: Only in qmc
+Name: #Custom. Task chain viewer \
+Resource filter: SchemaEvent*, CompositeEvent* \
+Actions: Read \
+Conditions: ((user.roles="TaskAdmin")) \
+Context: Only in qmc \
