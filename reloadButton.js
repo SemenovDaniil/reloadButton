@@ -6,10 +6,10 @@ requirejs.config({
 });
 
 define([
-		"jquery",
+        "jquery",
         "qlik",
         "dagre",
-		"d3",
+        "d3",
         "css!./styles/qsBootstrap.css",
         "css!./styles/styles.css",
         "css!./styles/bootstrap-icons.css",
@@ -55,7 +55,7 @@ define([
                                 ref: "timeoutRequest",
                                 label: "Dag update frequency (in seconds)",
                                 type: "integer",
-								defaultValue: 10
+                                defaultValue: 10
                             }
                         }
                     },
@@ -180,7 +180,8 @@ define([
                 var headerUserParametres = layout.headerUserParametres
 
 
-				var intervalForTasksBlink = new Object()
+                var intervalForTasksBlink = new Object()
+
                 function updateStatuses() {
 
                     chain.forEach((task) => {
@@ -196,15 +197,15 @@ define([
                         };
                         settings['headers'][headerUserParametres] = layout.userId
                         $.ajax(settings).done(function(response) {
-							if(task.status != response.operational.lastExecutionResult.status) {
-								if(task.status == 2 && response.operational.lastExecutionResult.status !==2){
-									clearInterval(intervalForTasksBlink[task.taskId])
-								}
+                            if (task.status != response.operational.lastExecutionResult.status) {
+                                if (task.status == 2 && response.operational.lastExecutionResult.status !== 2) {
+                                    clearInterval(intervalForTasksBlink[task.taskId])
+                                }
 
-								task.status = response.operational.lastExecutionResult.status
-								task.lastExecution = response.operational.lastExecutionResult.startTime
-								task.duration = response.operational.lastExecutionResult.duration
-								var className
+                                task.status = response.operational.lastExecutionResult.status
+                                task.lastExecution = response.operational.lastExecutionResult.startTime
+                                task.duration = response.operational.lastExecutionResult.duration
+                                var className
                                 switch (task.status) {
                                     case 0:
                                         className = "neverStarted" //#e2e2e2
@@ -250,17 +251,19 @@ define([
                                         break
 
                                 }
-								
-								if(className == 'started' && intervalForTasksBlink[task.taskId]==null) {
-									function fnBlink() {
-										$('#blocked.' + currentElementId+' span[taskid="'+task.taskId+'"]').fadeTo(100, 0.3, function() { $(this).fadeTo(500, 1.0); });
-									  }
-									  intervalForTasksBlink[task.taskId] = setInterval(fnBlink, 2000);
-								}
-								
-								$('#blocked.' + currentElementId+' span[taskid="'+task.taskId+'"]').parent().parent().parent().parent().parent().parent().attr('class','node '+className)
-								$('#blocked.' + currentElementId+' span[taskid="'+task.taskId+'"]').attr('startTime',task.lastExecution).attr('duration',task.duration)
-							}
+
+                                if (className == 'started' && intervalForTasksBlink[task.taskId] == null) {
+                                    function fnBlink() {
+                                        $('#blocked.' + currentElementId + ' span[taskid="' + task.taskId + '"]').fadeTo(100, 0.3, function() {
+                                            $(this).fadeTo(500, 1.0);
+                                        });
+                                    }
+                                    intervalForTasksBlink[task.taskId] = setInterval(fnBlink, 2000);
+                                }
+
+                                $('#blocked.' + currentElementId + ' span[taskid="' + task.taskId + '"]').parent().parent().parent().parent().parent().parent().attr('class', 'node ' + className)
+                                $('#blocked.' + currentElementId + ' span[taskid="' + task.taskId + '"]').attr('startTime', task.lastExecution).attr('duration', task.duration)
+                            }
                         });
 
 
@@ -277,12 +280,12 @@ define([
                     $('#blocked.' + currentElementId + ' .live.map').css('z-index', 103)
                     renderDag('#blocked.' + currentElementId + ' .live.map svg ')
 
-                    var updateTaskStatus = setInterval(() => updateStatuses(), layout.timeoutRequest*1000)
+                    var updateTaskStatus = setInterval(() => updateStatuses(), layout.timeoutRequest * 1000)
 
                     $('#blocked.' + currentElementId + ' i.bi.bi-x-square-fill').on('click', function() {
                         $('body .qvt-sheet-container .qvt-sheet #blocked.' + currentElementId).remove()
                         $('#blocked.' + currentElementId + ' i.bi.bi-x-square-fill').off('click');
-						clearInterval(updateTaskStatus);
+                        clearInterval(updateTaskStatus);
                     })
 
 
@@ -307,6 +310,7 @@ define([
                 })
 
                 var chain = []
+
                 function renderDag(selector) {
                     /*----*/
                     var thePromises = []
@@ -371,8 +375,8 @@ define([
                                 $.ajax(settings).done(function(response) {
                                     task['name'] = response.name
                                     task['status'] = response.operational.lastExecutionResult.status
-									task['lastExecution'] = response.operational.lastExecutionResult.startTime
-									task['duration'] = response.operational.lastExecutionResult.duration
+                                    task['lastExecution'] = response.operational.lastExecutionResult.startTime
+                                    task['duration'] = response.operational.lastExecutionResult.duration
                                     countEnded++
                                     if (countEnded == chain.length) {
                                         return resolve()
@@ -456,7 +460,7 @@ define([
                                 }
 
                                 var html = "<div>";
-                                html += "<span class='status' taskId='" + task.taskId + "' startTime='"+task.lastExecution+"' duration='"+task.duration+"' name='"+task.name+"'></span>";
+                                html += "<span class='status' taskId='" + task.taskId + "' startTime='" + task.lastExecution + "' duration='" + task.duration + "' name='" + task.name + "'></span>";
                                 html += "<span class=name >" + task.name + "</span>";
                                 html += "</div>";
 
@@ -479,7 +483,7 @@ define([
                                 }
                             })
 
-							
+
 
                             inner.call(render, g);
                             var graphWidth = g.graph().width + 80;
@@ -492,68 +496,74 @@ define([
                             var svgZoom = svg.transition().duration(500);
                             svgZoom.call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY).scale(zoomScale));
 
-							chain.forEach((task) => {
-								if(task.status == 2) {
-									function fnBlink() {
-										$('#blocked.' + currentElementId+' span[taskid="'+task.taskId+'"]').fadeTo(100, 0.3, function() { $(this).fadeTo(500, 1.0); });//.fadeTo("slow",0).delay(1000).fadeTo("slow",1);
-										
-									  }
-									  fnBlink()
-									  intervalForTasksBlink[task.taskId] = setInterval(fnBlink, 2000);
-								}
-							})
+                            chain.forEach((task) => {
+                                if (task.status == 2) {
+                                    function fnBlink() {
+                                        $('#blocked.' + currentElementId + ' span[taskid="' + task.taskId + '"]').fadeTo(100, 0.3, function() {
+                                            $(this).fadeTo(500, 1.0);
+                                        }); //.fadeTo("slow",0).delay(1000).fadeTo("slow",1);
 
-							var tooltip = d3.select("body")
-								.append("div")
-								.attr('id', 'tooltip_card')
-								.style("position", "absolute")
-								.style("background-color", "white")
-								.style("padding", "5px")
-								.style("z-index", "10")
-								.style("visibility", "hidden")
-								.html("Simple Tooltip...");
+                                    }
+                                    fnBlink()
+                                    intervalForTasksBlink[task.taskId] = setInterval(fnBlink, 2000);
+                                }
+                            })
 
-								function millisToMinutesAndSeconds(millis) {
-									var minutes = Math.floor(millis / 60000);
-									var seconds = ((millis % 60000) / 1000).toFixed(0);
-									return minutes + " minutes " + (seconds < 10 ? '0' : '') + seconds +' seconds';
-								  }
-								  
-								  function localDate(date){
-									var date =  new Date(date)
-									var day = date.getDate();
-									day = day < 10 ? "0" + day : day;
-									var month = date.getMonth() + 1;
-									month = month < 10 ? "0" + month : month;
-									var year = date.getFullYear();
-									var hour = date.getHours()
-									hour = hour < 10 ? "0" + hour : hour;
-									var minutes = date.getMinutes()
-									minutes = minutes < 10 ? "0" + minutes : minutes;
-									var seconds = date.getSeconds()
-									seconds = seconds < 10 ? "0" + seconds : seconds;
+                            var tooltip = d3.select("body")
+                                .append("div")
+                                .attr('id', 'tooltip_card')
+                                .style("position", "absolute")
+                                .style("background-color", "white")
+                                .style("padding", "5px")
+                                .style("z-index", "10")
+                                .style("visibility", "hidden")
+                                .html("Simple Tooltip...");
 
-									return day + "." + month + "." + year +' ' + hour +':'+minutes+':'+seconds;
-								  }
-								  
-								inner.selectAll('g.node')
-									.attr("data-hovertext", function(v) { 
-										return g.node(v).hovertext
-									})
-									.on("mouseover", function(){return tooltip.style("visibility", "visible");})
-									.on("mousemove", function(){ 
-										html = '<div class="container">'
-										html += '<h3>'+ $(this).attr('class').replace('node','')+'</h3>'
-										html += '<p>task name: <b>'+$(this).find('.status').attr('name')+'</b></p>'
-										html += '<p>task id: <b>'+$(this).find('.status').attr('taskId')+'</b></p>'
-										html += '<p>last execution: <b>'+localDate($(this).find('.status').attr('startTime'))+'</b></p>'
-										html += '<p>duration: <b>'+millisToMinutesAndSeconds($(this).find('.status').attr('duration'))+'</b></p>'
-										tooltip.html(html)
-									
-										tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");
-									})
-									.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
-								
+                            function millisToMinutesAndSeconds(millis) {
+                                var minutes = Math.floor(millis / 60000);
+                                var seconds = ((millis % 60000) / 1000).toFixed(0);
+                                return minutes + " minutes " + (seconds < 10 ? '0' : '') + seconds + ' seconds';
+                            }
+
+                            function localDate(date) {
+                                var date = new Date(date)
+                                var day = date.getDate();
+                                day = day < 10 ? "0" + day : day;
+                                var month = date.getMonth() + 1;
+                                month = month < 10 ? "0" + month : month;
+                                var year = date.getFullYear();
+                                var hour = date.getHours()
+                                hour = hour < 10 ? "0" + hour : hour;
+                                var minutes = date.getMinutes()
+                                minutes = minutes < 10 ? "0" + minutes : minutes;
+                                var seconds = date.getSeconds()
+                                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                                return day + "." + month + "." + year + ' ' + hour + ':' + minutes + ':' + seconds;
+                            }
+
+                            inner.selectAll('g.node')
+                                .attr("data-hovertext", function(v) {
+                                    return g.node(v).hovertext
+                                })
+                                .on("mouseover", function() {
+                                    return tooltip.style("visibility", "visible");
+                                })
+                                .on("mousemove", function() {
+                                    html = '<div class="container">'
+                                    html += '<h3>' + $(this).attr('class').replace('node', '') + '</h3>'
+                                    html += '<p>task name: <b>' + $(this).find('.status').attr('name') + '</b></p>'
+                                    html += '<p>task id: <b>' + $(this).find('.status').attr('taskId') + '</b></p>'
+                                    html += '<p>last execution: <b>' + localDate($(this).find('.status').attr('startTime')) + '</b></p>'
+                                    html += '<p>duration: <b>' + millisToMinutesAndSeconds($(this).find('.status').attr('duration')) + '</b></p>'
+                                    tooltip.html(html)
+
+                                    tooltip.style("top", (event.pageY - 10) + "px").style("left", (event.pageX + 10) + "px");
+                                })
+                                .on("mouseout", function() {
+                                    return tooltip.style("visibility", "hidden");
+                                });
+
 
                         })
 
