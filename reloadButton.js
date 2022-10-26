@@ -198,8 +198,8 @@ define([
                         settings['headers'][headerUserParametres] = layout.userId
                         $.ajax(settings).done(function(response) {
                             if (task.status != response.operational.lastExecutionResult.status) {
-                                
-								if (task.status == 2 && response.operational.lastExecutionResult.status !== 2 || task.lastExecution != response.operational.lastExecutionResult.startTime) {
+
+                                if (task.status == 2 && response.operational.lastExecutionResult.status !== 2 || task.lastExecution != response.operational.lastExecutionResult.startTime) {
                                     clearInterval(intervalForTasksBlink[task.taskId])
                                 }
 
@@ -288,11 +288,11 @@ define([
                         $('#blocked.' + currentElementId + ' i.bi.bi-x-square-fill').off('click');
                         clearInterval(updateTaskStatus);
 
-						for(const key in intervalForTasksBlink){
-							console.log(key)
-							clearInterval(intervalForTasksBlink[key])
-						}
-						
+                        for (const key in intervalForTasksBlink) {
+                            console.log(key)
+                            clearInterval(intervalForTasksBlink[key])
+                        }
+
                     })
 
 
