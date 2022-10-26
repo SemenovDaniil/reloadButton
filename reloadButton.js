@@ -166,7 +166,7 @@ define([
 
 
                 _$element.html("")
-                _$element.append('<div  class="qs_bootstrap"><button type="button" class="btn reload ' + layout.style + '" style="margin-right:10px;min-width:calc(100% - 80px);">' + layout.buttonText + '</button><button type="button" class="btn dag ' + layout.style + '" style="margin-right:10px;width:60px;height:38px;">' + dagIcon + ' DAG info</button></div>')
+                _$element.append('<div  class="qs_bootstrap"><button type="button" class="btn reload ' + layout.style + '" style="margin-right:10px;min-width:calc(100% - 80px);">' + layout.buttonText + '</button><button type="button" class="btn dag ' + layout.style + '" style="margin-right:10px;width:60px;height:38px;">' + dagIcon + '</button></div>')
 
                 $('div[tId="' + tId + '"] .qv-inner-object').css("background-color", "rgba(0,0,0,0")
                 $('div[tId="' + tId + '"] article.qv-object-reloadButton').css("border-color", "rgba(0,0,0,0")
