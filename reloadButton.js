@@ -1,7 +1,7 @@
 requirejs.config({
     paths: {
-        'dagre': '/extensions/DagreDagGraph/lib/dagre-d3',
-        'd3': '/extensions/DagreDagGraph/lib/d3.v5.min'
+        'dagre': '/extensions/reloadButton/lib/dagre-d3',
+        'd3': '/extensions/reloadButton/lib/d3.v5.min'
     }
 });
 
