@@ -326,7 +326,12 @@ define([
                     var currentPromiseTask = new Object()
                     const taskChain = (taskId, parentTaskId, deleteIndex, taskType) => {
                         return new Promise((resolve) => {
-                            var url = layout.host + '/' + layout.prefix + "/qrs/CompositeEvent/full?filter=compositeRules.reloadTask ne null and compositeRules.reloadTask.id eq {" + taskId + "}&xrfkey=1234567890ABCDEF"
+                            if(taskType == 'reload') {
+                                var filter = "compositeRules.reloadTask ne null and compositeRules.reloadTask.id eq {" + taskId + "}"
+                            }else if (taskType == 'external'){
+                                var filter = "compositeRules.externalProgramTask ne null and compositeRules.externalProgramTask.id eq {" + taskId + "}"
+                            }
+                            var url = layout.host + '/' + layout.prefix + "/qrs/CompositeEvent/full?filter="+filter+"&xrfkey=1234567890ABCDEF"
                             var settings = {
                                 "url": url,
                                 "method": "GET",
@@ -364,6 +369,7 @@ define([
                         })
                     }
 
+
                     function getTaskName() {
                         return new Promise((resolve) => {
                             var countEnded = 0
@@ -395,188 +401,216 @@ define([
                         })
                     }
 
-
-                    taskChain(layout.taskId, null, 0, 'reload').then(() => {
-                        getTaskName().then(() => {
-                            var svg = d3.select(selector)
-                            inner = svg.select("g"),
-                                zoom = d3.zoom().on("zoom", function() {
-                                    inner.attr("transform", d3.event.transform);
-                                });
-                            svg.call(zoom);
-
-                            var render = new dagreD3.render();
-                            // Left-to-right layout
-                            var g = new dagreD3.graphlib.Graph({
-                                compound: true
-                            });
-                            g.setGraph({
-                                nodesep: 70,
-                                ranksep: 50,
-                                rankdir: "LR",
-                                marginx: 40,
-                                marginy: 80
-                            });
-
-                            chain.forEach((task) => {
-                                var className
-                                switch (task.status) {
-                                    case 0:
-                                        className = "neverStarted" //#e2e2e2
-                                        break
-                                    case 1:
-                                        className = "triggered" //#503f3f
-                                        break
-                                    case 2:
-                                        className = "started" //#a6d75b
-                                        break
-                                    case 3:
-                                        className = "queued" //#22a7f0
-                                        break
-                                    case 4:
-                                        className = "abortInitiated" //#991f17
-                                        break
-                                    case 5:
-                                        className = "aborting" //#991f17
-                                        break
-                                    case 6:
-                                        className = "aborted" //#991f17
-                                        break
-                                    case 7:
-                                        className = "success" //#599e94
-                                        break
-                                    case 8:
-                                        className = "failed" //#991f17
-                                        break
-                                    case 9:
-                                        className = "skipped" //#b3bfd1
-                                        break
-                                    case 10:
-                                        className = "retry" //#48b5c4
-                                        break
-                                    case 11:
-                                        className = "error" //#b04238
-                                        break
-                                    case 12:
-                                        className = "reset" //#0020ff
-                                        break
-                                    default:
-                                        var className = "unknown"
-                                        break
-
+                    function getStartTaskInfo(taskId) {
+                        return new Promise((resolve) => {
+                            var settings = {
+                                "url": layout.host + '/' + layout.prefix + "/qrs/reloadTask/" + taskId + "?xrfkey=1234567890ABCDEF",
+                                "method": "GET",
+                                "timeout": 0,
+                                "headers": {
+                                    "X-Qlik-xrfkey": "1234567890ABCDEF",
+                                    "Content-Type": "application/json",
                                 }
+                            };
+                            settings['headers'][headerUserParametres] = layout.userId
+                            $.ajax(settings).done(function(response) {
+                                    resolve('reload')
+                                })
+                                .fail(function(response) {
+                                    if (response.status == 404) {
+                                        settings.url = layout.host + '/' + layout.prefix + "/qrs/externalProgramTask/" + taskId + "?xrfkey=1234567890ABCDEF"
+                                        $.ajax(settings).done(function(response) {
+                                            resolve('external')
+                                        })
+                                    }
+                                })
+                        })
 
-                                var html = "<div>";
-                                html += "<span class='status' taskId='" + task.taskId + "' startTime='" + task.lastExecution + "' duration='" + task.duration + "' name='" + task.name + "'></span>";
-                                html += "<span class=name >" + task.name + "</span>";
-                                html += "</div>";
+                    }
 
-                                g.setNode(task.taskId, {
-                                    labelType: "html",
-                                    label: html,
-                                    rx: 5,
-                                    ry: 5,
-                                    padding: 0,
-                                    class: className
-                                });
-
-                            })
-
-                            chain.forEach((task) => {
-                                if (task.parentId !== null && task.taskId !== null) {
-                                    g.setEdge(task.parentId, task.taskId, {
-                                        label: ""
+                    getStartTaskInfo(layout.taskId).then((startTaskType) => {
+                        taskChain(layout.taskId, null, 0, startTaskType).then(() => {
+                            getTaskName().then(() => {
+                                var svg = d3.select(selector)
+                                inner = svg.select("g"),
+                                    zoom = d3.zoom().on("zoom", function() {
+                                        inner.attr("transform", d3.event.transform);
                                     });
-                                }
-                            })
+                                svg.call(zoom);
 
+                                var render = new dagreD3.render();
+                                // Left-to-right layout
+                                var g = new dagreD3.graphlib.Graph({
+                                    compound: true
+                                });
+                                g.setGraph({
+                                    nodesep: 70,
+                                    ranksep: 50,
+                                    rankdir: "LR",
+                                    marginx: 40,
+                                    marginy: 80
+                                });
 
-
-                            inner.call(render, g);
-                            var graphWidth = g.graph().width + 80;
-                            var graphHeight = g.graph().height + 40;
-                            var width = parseInt(svg.style("width").replace(/px/, ""));
-                            var height = parseInt(svg.style("height").replace(/px/, ""));
-                            var zoomScale = Math.min(width / graphWidth, height / graphHeight);
-                            var translateX = (width / 2) - ((graphWidth * zoomScale) / 2)
-                            var translateY = (height / 2) - ((graphHeight * zoomScale) / 2);
-                            var svgZoom = svg.transition().duration(500);
-                            svgZoom.call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY).scale(zoomScale));
-
-                            chain.forEach((task) => {
-                                if (task.status == 2) {
-                                    function fnBlink() {
-                                        $('#blocked.' + currentElementId + ' span[taskid="' + task.taskId + '"]').fadeTo(100, 0.3, function() {
-                                            $(this).fadeTo(500, 1.0);
-                                        }); //.fadeTo("slow",0).delay(1000).fadeTo("slow",1);
+                                chain.forEach((task) => {
+                                    var className
+                                    switch (task.status) {
+                                        case 0:
+                                            className = "neverStarted" //#e2e2e2
+                                            break
+                                        case 1:
+                                            className = "triggered" //#503f3f
+                                            break
+                                        case 2:
+                                            className = "started" //#a6d75b
+                                            break
+                                        case 3:
+                                            className = "queued" //#22a7f0
+                                            break
+                                        case 4:
+                                            className = "abortInitiated" //#991f17
+                                            break
+                                        case 5:
+                                            className = "aborting" //#991f17
+                                            break
+                                        case 6:
+                                            className = "aborted" //#991f17
+                                            break
+                                        case 7:
+                                            className = "success" //#599e94
+                                            break
+                                        case 8:
+                                            className = "failed" //#991f17
+                                            break
+                                        case 9:
+                                            className = "skipped" //#b3bfd1
+                                            break
+                                        case 10:
+                                            className = "retry" //#48b5c4
+                                            break
+                                        case 11:
+                                            className = "error" //#b04238
+                                            break
+                                        case 12:
+                                            className = "reset" //#0020ff
+                                            break
+                                        default:
+                                            var className = "unknown"
+                                            break
 
                                     }
-                                    fnBlink()
-                                    intervalForTasksBlink[task.taskId] = setInterval(fnBlink, 2000);
+
+                                    var html = "<div>";
+                                    html += "<span class='status' taskId='" + task.taskId + "' startTime='" + task.lastExecution + "' duration='" + task.duration + "' name='" + task.name + "'></span>";
+                                    html += "<span class=name >" + task.name + "</span>";
+                                    html += "</div>";
+
+                                    g.setNode(task.taskId, {
+                                        labelType: "html",
+                                        label: html,
+                                        rx: 5,
+                                        ry: 5,
+                                        padding: 0,
+                                        class: className
+                                    });
+
+                                })
+
+                                chain.forEach((task) => {
+                                    if (task.parentId !== null && task.taskId !== null) {
+                                        g.setEdge(task.parentId, task.taskId, {
+                                            label: ""
+                                        });
+                                    }
+                                })
+
+
+
+                                inner.call(render, g);
+                                var graphWidth = g.graph().width + 80;
+                                var graphHeight = g.graph().height + 40;
+                                var width = parseInt(svg.style("width").replace(/px/, ""));
+                                var height = parseInt(svg.style("height").replace(/px/, ""));
+                                var zoomScale = Math.min(width / graphWidth, height / graphHeight);
+                                var translateX = (width / 2) - ((graphWidth * zoomScale) / 2)
+                                var translateY = (height / 2) - ((graphHeight * zoomScale) / 2);
+                                var svgZoom = svg.transition().duration(500);
+                                svgZoom.call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY).scale(zoomScale));
+
+                                chain.forEach((task) => {
+                                    if (task.status == 2) {
+                                        function fnBlink() {
+                                            $('#blocked.' + currentElementId + ' span[taskid="' + task.taskId + '"]').fadeTo(100, 0.3, function() {
+                                                $(this).fadeTo(500, 1.0);
+                                            }); //.fadeTo("slow",0).delay(1000).fadeTo("slow",1);
+
+                                        }
+                                        fnBlink()
+                                        intervalForTasksBlink[task.taskId] = setInterval(fnBlink, 2000);
+                                    }
+                                })
+
+                                var tooltip = d3.select("body")
+                                    .append("div")
+                                    .attr('id', 'tooltip_card')
+                                    .style("position", "absolute")
+                                    .style("background-color", "white")
+                                    .style("padding", "5px")
+                                    .style("z-index", "10")
+                                    .style("visibility", "hidden")
+                                    .html("Simple Tooltip...");
+
+                                function millisToMinutesAndSeconds(millis) {
+                                    var minutes = Math.floor(millis / 60000);
+                                    var seconds = ((millis % 60000) / 1000).toFixed(0);
+                                    return minutes + " minutes " + (seconds < 10 ? '0' : '') + seconds + ' seconds';
                                 }
+
+                                function localDate(date) {
+                                    var date = new Date(date)
+                                    var day = date.getDate();
+                                    day = day < 10 ? "0" + day : day;
+                                    var month = date.getMonth() + 1;
+                                    month = month < 10 ? "0" + month : month;
+                                    var year = date.getFullYear();
+                                    var hour = date.getHours()
+                                    hour = hour < 10 ? "0" + hour : hour;
+                                    var minutes = date.getMinutes()
+                                    minutes = minutes < 10 ? "0" + minutes : minutes;
+                                    var seconds = date.getSeconds()
+                                    seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                                    return day + "." + month + "." + year + ' ' + hour + ':' + minutes + ':' + seconds;
+                                }
+
+                                inner.selectAll('g.node')
+                                    .attr("data-hovertext", function(v) {
+                                        return g.node(v).hovertext
+                                    })
+                                    .on("mouseover", function() {
+                                        return tooltip.style("visibility", "visible");
+                                    })
+                                    .on("mousemove", function() {
+                                        html = '<div class="container">'
+                                        html += '<h3>' + $(this).attr('class').replace('node', '') + '</h3>'
+                                        html += '<p>task name: <b>' + $(this).find('.status').attr('name') + '</b></p>'
+                                        html += '<p>task id: <b>' + $(this).find('.status').attr('taskId') + '</b></p>'
+                                        html += '<p>last execution: <b>' + localDate($(this).find('.status').attr('startTime')) + '</b></p>'
+                                        html += '<p>duration: <b>' + millisToMinutesAndSeconds($(this).find('.status').attr('duration')) + '</b></p>'
+                                        tooltip.html(html)
+
+                                        tooltip.style("top", (event.pageY - 10) + "px").style("left", (event.pageX + 10) + "px");
+                                    })
+                                    .on("mouseout", function() {
+                                        return tooltip.style("visibility", "hidden");
+                                    });
+
+
                             })
 
-                            var tooltip = d3.select("body")
-                                .append("div")
-                                .attr('id', 'tooltip_card')
-                                .style("position", "absolute")
-                                .style("background-color", "white")
-                                .style("padding", "5px")
-                                .style("z-index", "10")
-                                .style("visibility", "hidden")
-                                .html("Simple Tooltip...");
-
-                            function millisToMinutesAndSeconds(millis) {
-                                var minutes = Math.floor(millis / 60000);
-                                var seconds = ((millis % 60000) / 1000).toFixed(0);
-                                return minutes + " minutes " + (seconds < 10 ? '0' : '') + seconds + ' seconds';
-                            }
-
-                            function localDate(date) {
-                                var date = new Date(date)
-                                var day = date.getDate();
-                                day = day < 10 ? "0" + day : day;
-                                var month = date.getMonth() + 1;
-                                month = month < 10 ? "0" + month : month;
-                                var year = date.getFullYear();
-                                var hour = date.getHours()
-                                hour = hour < 10 ? "0" + hour : hour;
-                                var minutes = date.getMinutes()
-                                minutes = minutes < 10 ? "0" + minutes : minutes;
-                                var seconds = date.getSeconds()
-                                seconds = seconds < 10 ? "0" + seconds : seconds;
-
-                                return day + "." + month + "." + year + ' ' + hour + ':' + minutes + ':' + seconds;
-                            }
-
-                            inner.selectAll('g.node')
-                                .attr("data-hovertext", function(v) {
-                                    return g.node(v).hovertext
-                                })
-                                .on("mouseover", function() {
-                                    return tooltip.style("visibility", "visible");
-                                })
-                                .on("mousemove", function() {
-                                    html = '<div class="container">'
-                                    html += '<h3>' + $(this).attr('class').replace('node', '') + '</h3>'
-                                    html += '<p>task name: <b>' + $(this).find('.status').attr('name') + '</b></p>'
-                                    html += '<p>task id: <b>' + $(this).find('.status').attr('taskId') + '</b></p>'
-                                    html += '<p>last execution: <b>' + localDate($(this).find('.status').attr('startTime')) + '</b></p>'
-                                    html += '<p>duration: <b>' + millisToMinutesAndSeconds($(this).find('.status').attr('duration')) + '</b></p>'
-                                    tooltip.html(html)
-
-                                    tooltip.style("top", (event.pageY - 10) + "px").style("left", (event.pageX + 10) + "px");
-                                })
-                                .on("mouseout", function() {
-                                    return tooltip.style("visibility", "hidden");
-                                });
 
 
                         })
-
-
-
-                    });
+                    })
                 }
 
 
